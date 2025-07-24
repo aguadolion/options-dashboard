@@ -1,25 +1,3 @@
-"""
-main.py
-~~~~~~~
-
-Entry point for running the background data fetch loop.  This script uses the
-functions defined in :mod:`data_fetcher` to build and maintain the local
-database of options data.  It cycles through the list of dividend‑paying
-S&P 500 tickers, updating four symbols per minute to respect Polygon's free
-plan rate limits.  After all tickers have been processed, the loop starts
-again from the beginning.
-
-To run the updater manually, execute:
-
-```
-python main.py
-```
-
-Ensure that the ``POLYGON_API_KEY`` environment variable is set or define it
-via a `.streamlit/secrets.toml` file when deploying to Streamlit Cloud.  You
-can also specify a different database path via the ``--db`` CLI argument.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -37,7 +15,6 @@ except ImportError:
     # Fallback to absolute imports when running as a standalone script
     import data_fetcher  # type: ignore
     from polygon_client import PolygonClient  # type: ignore
-
 
 logger = logging.getLogger(__name__)
 
