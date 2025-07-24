@@ -28,8 +28,15 @@ import logging
 import os
 import time
 
-from . import data_fetcher
-from .polygon_client import PolygonClient
+# Import modules either as absolute when run as a script, or relative when packaged
+try:
+    # When part of a package, these relative imports will work
+    from . import data_fetcher  # type: ignore
+    from .polygon_client import PolygonClient  # type: ignore
+except ImportError:
+    # Fallback to absolute imports when running as a standalone script
+    import data_fetcher  # type: ignore
+    from polygon_client import PolygonClient  # type: ignore
 
 
 logger = logging.getLogger(__name__)
