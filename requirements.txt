@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+requests
+yfinance
+sqlalchemy
+matplotlib
+altair
+python-dotenv
