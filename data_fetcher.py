@@ -27,8 +27,12 @@ from typing import Iterable, List
 
 import yfinance as yf
 
-import database
-from polygon_client import PolygonClient
+# Import PolygonClient como módulo relativo o absoluto
+try:
+    from .polygon_client import PolygonClient  # type: ignore
+except ImportError:
+    from polygon_client import PolygonClient  # type: ignore
+
 
 # Minimum dividend yield to include a company (e.g. 0.025 for 2.5%).
 DIVIDEND_YIELD_THRESHOLD = float(os.getenv("DIVIDEND_YIELD_THRESHOLD", "0.025"))
