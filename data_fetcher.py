@@ -1,13 +1,13 @@
 """
     data_fetcher.py
-    ~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~
 
     This module contains higher-level functions for acquiring data used in the
     options dashboard.  It performs the following tasks:
 
     1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
     2. Determine each company's trailing dividend yield and next ex-dividend date.
-    3. Filter the list to companies whose dividend yield meets a threshold.
+    3. Filter the list of tickers by dividend yield threshold.
     4. Download the full options chain for each selected ticker from Polygon.
     5. Persist the resulting data in a local SQLite database.
 
@@ -22,6 +22,7 @@
 
 import logging
 import os
+import time
 import sqlite3
 from typing import Iterable, List
 
@@ -87,6 +88,7 @@ def get_dividend_info(ticker: str) -> tuple[float, str | None]:
     yield_pct = info.get('dividendYield', 0.0) or 0.0
     ex_date = info.get('exDividendDate')
     if isinstance(ex_date, (int, float)):
+        # Convert UNIX timestamp to ISO date string
         ex_date = time.strftime('%Y-%m-%d', time.gmtime(ex_date))
     return (yield_pct, ex_date)
 
