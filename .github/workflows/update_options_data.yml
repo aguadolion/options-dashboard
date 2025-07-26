@@ -20,7 +20,7 @@ jobs:
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
         run: |
-          timeout 3600 python main.py --db options_data.db --interval 15
+          timeout 3600 python -m main --db options_data.db --interval 15
       - name: Commit database
         run: |
           git config user.name "GitHub Actions"
