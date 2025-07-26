@@ -1,24 +1,24 @@
 """
-data_fetcher.py
-~~~~~~~~~~~~~~~~
+    data_fetcher.py
+    ~~~~~~~~~~~~~~~~
 
-This module contains higher‑level functions for acquiring data used in the
-options dashboard.  It performs the following tasks:
+    This module contains higher-level functions for acquiring data used in the
+    options dashboard.  It performs the following tasks:
 
-1. Retrieve the list of S&P 500 tickers (or load from user‑provided file).
-2. Determine each company's trailing dividend yield and next ex‑dividend date.
-3. Filter the list to companies whose dividend yield meets a threshold.
-4. Download the full options chain for each selected ticker from Polygon.
-5. Persist the resulting data in a local SQLite database.
+    1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
+    2. Determine each company's trailing dividend yield and next ex-dividend date.
+    3. Filter the list to companies whose dividend yield meets a threshold.
+    4. Download the full options chain for each selected ticker from Polygon.
+    5. Persist the resulting data in a local SQLite database.
 
-By default, it fetches S&P 500 tickers via yfinance, but if a file named
-"isins.txt" (or whatever path is set via the ISINS_FILE env var) exists,
-it will load tickers/ISINs from that file instead.
+    By default, it fetches S&P 500 tickers via yfinance, but if a file named
+    "isins.txt" (or whatever path is set via the ISINS_FILE env var) exists,
+    it will load tickers/ISINs from that file instead.
 
-The implementation relies on `yfinance` to obtain dividend information and
-makes HTTP calls to the Polygon API via a small client wrapper defined in
-`polygon_client.py`.
-"""
+    The implementation relies on `yfinance` to obtain dividend information and
+    makes HTTP calls to the Polygon API via a small client wrapper defined in
+    `polygon_client.py`.
+    """
 
 import logging
 import os
@@ -27,12 +27,13 @@ from typing import Iterable, List
 
 import yfinance as yf
 
-# Import PolygonClient como módulo relativo o absoluto
+import database
+
+# Import PolygonClient as relative or absolute
 try:
     from .polygon_client import PolygonClient  # type: ignore
 except ImportError:
     from polygon_client import PolygonClient  # type: ignore
-
 
 # Minimum dividend yield to include a company (e.g. 0.025 for 2.5%).
 DIVIDEND_YIELD_THRESHOLD = float(os.getenv("DIVIDEND_YIELD_THRESHOLD", "0.025"))
@@ -64,7 +65,7 @@ def load_tickers_from_file(path: str) -> List[str]:
 
 def get_sp500_tickers() -> List[str]:
     """
-    Return the list of S&P 500 ticker symbols, or load from ISINs_FILE if present.
+    Return the list of S&P 500 ticker symbols, or load from ISINS_FILE if present.
     """
     # If user provided a file of tickers/ISINs, use that
     if os.path.exists(ISINS_FILE):
@@ -74,20 +75,18 @@ def get_sp500_tickers() -> List[str]:
 
     # Otherwise fallback to scraping via yfinance
     tickers = [t.upper() for t in yf.TickersSp500().tickers]
-    logger.info("Fetched %d S&P 500 tickers via yfinance", len(tickers))
+    logger.info("Fetched %d S&P 500 tickers via yfinance", len(tickers))
     return tickers
 
 
 def get_dividend_info(ticker: str) -> tuple[float, str | None]:
     """
-    Retrieve trailing dividend yield and next ex‑dividend date for a ticker.
+    Retrieve trailing dividend yield and next ex-dividend date for a ticker.
     """
-    # Implementation here...
     info = yf.Ticker(ticker).info
     yield_pct = info.get('dividendYield', 0.0) or 0.0
     ex_date = info.get('exDividendDate')
     if isinstance(ex_date, (int, float)):
-        # Convert to ISO date if necessary
         ex_date = time.strftime('%Y-%m-%d', time.gmtime(ex_date))
     return (yield_pct, ex_date)
 
@@ -118,7 +117,7 @@ def fetch_and_store_options(
     """
     Download and store the full options chain for the given ticker.
     """
-    conn = database.connect(db_path)
+    conn = sqlite3.connect(db_path)
     # Implementation to fetch options and upsert into DB
     # ...
 
