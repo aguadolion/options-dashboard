@@ -1,25 +1,24 @@
 """
-    data_fetcher.py
-    ~~~~~~~~~~~~~~~
+data_fetcher.py
+~~~~~~~~~~~~~~~
 
-    This module contains higher-level functions for acquiring data used in the
-    options dashboard.  It performs the following tasks:
+This module contains higher-level functions for acquiring data used in the
+options dashboard.  It performs the following tasks:
 
-    1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
-    2. Determine each company's trailing dividend yield and next ex-dividend date.
-    3. Filter the list of tickers by dividend yield threshold.
-    4. Download the full options chain for each selected ticker from Polygon.
-    5. Persist the resulting data in a local SQLite database.
+1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
+2. Determine each company’s trailing dividend yield and next ex-dividend date.
+3. Filter the list of tickers by dividend yield threshold.
+4. Download the full options chain for each selected ticker from Polygon.
+5. Persist the resulting data in a local SQLite database.
 
-    By default, it fetches S&P 500 tickers via yfinance, but if a file named
-    "isins.txt" (or whatever path is set via the ISINS_FILE env var) exists,
-    it will load tickers/ISINs from that file instead.
+By default, it fetches S&P 500 tickers via yfinance, but if a file named
+“isins.txt” (or whatever path is set via the ISINS_FILE env var) exists,
+it will load tickers/ISINs from that file instead.
 
-    The implementation relies on `yfinance` to obtain dividend information and
-    makes HTTP calls to the Polygon API via a small client wrapper defined in
-    `polygon_client.py`.
-    """
-
+The implementation relies on `yfinance` to obtain dividend information and
+makes HTTP calls to the Polygon API via a small client wrapper defined in
+`polygon_client.py`.
+"""
 import logging
 import os
 import time
@@ -27,7 +26,6 @@ import sqlite3
 from typing import Iterable, List
 
 import yfinance as yf
-
 import database
 
 # Import PolygonClient as relative or absolute
@@ -68,7 +66,6 @@ def get_sp500_tickers() -> List[str]:
     """
     Return the list of S&P 500 ticker symbols, or load from ISINS_FILE if present.
     """
-    # If user provided a file of tickers/ISINs, use that
     if os.path.exists(ISINS_FILE):
         tickers = load_tickers_from_file(ISINS_FILE)
         logger.info("Loaded %d tickers from file %s", len(tickers), ISINS_FILE)
@@ -120,8 +117,10 @@ def fetch_and_store_options(
     Download and store the full options chain for the given ticker.
     """
     conn = sqlite3.connect(db_path)
-    # Implementation to fetch options and upsert into DB
-    # ...
+    # TODO: implement the actual fetch and upsert logic here
+    # e.g. data = client.get_snapshot(ticker)
+    # for contract in data: database.upsert_option(conn, contract)
+    conn.close()
 
 
 def update_data(
@@ -135,6 +134,7 @@ def update_data(
     logger.info("%d tickers to process", len(tickers))
     for ticker in tickers:
         fetch_and_store_options(ticker, client, db_path)
+
 
 __all__ = [
     "load_tickers_from_file",
