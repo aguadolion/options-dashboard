@@ -1,8 +1,11 @@
 name: Fetch and Commit Options Data
 
+# 1) Give the GITHUB_TOKEN write access to the repo’s contents
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
-  # Uncomment to run every 12h:
   # schedule:
   #   - cron: '0 */12 * * *'
 
@@ -12,6 +15,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          # 2) Make sure the GITHUB_TOKEN credentials are kept on the checkout
+          persist-credentials: true
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
@@ -31,11 +37,11 @@ jobs:
 
       - name: Commit updated DB
         run: |
-          # Disable the “ignored file” warning
+          # Suppress “ignored by .gitignore” warnings
           git config advice.addIgnoredFile false
-          # Force-add the DB even if it's in .gitignore
+          # Force-add even if it's in .gitignore
           git add -f options_data.db
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "Auto‑update options_data.db" || echo "No changes to commit"
           git push
