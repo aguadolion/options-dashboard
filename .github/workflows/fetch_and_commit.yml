@@ -2,6 +2,7 @@ name: Fetch and Commit Options Data
 
 on:
   workflow_dispatch:
+  # Uncomment to run every 12h:
   # schedule:
   #   - cron: '0 */12 * * *'
 
@@ -30,8 +31,11 @@ jobs:
 
       - name: Commit updated DB
         run: |
+          # Disable the “ignored file” warning
+          git config advice.addIgnoredFile false
+          # Force-add the DB even if it's in .gitignore
+          git add -f options_data.db
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add options_data.db
-          git commit -m "Auto-update options_data.db" || echo "No changes to commit"
+          git commit -m "Auto‑update options_data.db" || echo "No changes to commit"
           git push
