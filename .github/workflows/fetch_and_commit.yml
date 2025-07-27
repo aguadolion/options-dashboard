@@ -29,6 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+            - name: Debug—check POLYGON_API_KEY
+        run: |
+          if [ -z "$POLYGON_API_KEY" ]; then
+            echo "❌ POLYGON_API_KEY is empty!"
+            exit 1
+          else
+            echo "✅ POLYGON_API_KEY loaded (length ${#POLYGON_API_KEY})"
+          fi
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+
       - name: Fetch options data
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
