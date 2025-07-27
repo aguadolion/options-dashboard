@@ -1,6 +1,6 @@
 name: Fetch and Commit Options Data
 
-# 1) Give the GITHUB_TOKEN write access to the repo’s contents
+# Dar permiso de escritura al token de GitHub Actions
 permissions:
   contents: write
 
@@ -13,10 +13,10 @@ jobs:
   fetch-options:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          # 2) Make sure the GITHUB_TOKEN credentials are kept on the checkout
           persist-credentials: true
 
       - name: Setup Python 3.10
@@ -29,16 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-            - name: Debug—check POLYGON_API_KEY
+      - name: Debug—check POLYGON_API_KEY
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
         run: |
           if [ -z "$POLYGON_API_KEY" ]; then
-            echo "❌ POLYGON_API_KEY is empty!"
+            echo "❌ POLYGON_API_KEY is empty! Define it in Settings → Secrets → Actions"
             exit 1
           else
             echo "✅ POLYGON_API_KEY loaded (length ${#POLYGON_API_KEY})"
+            echo "   Starts: ${POLYGON_API_KEY:0:4}… Ends: ${POLYGON_API_KEY: -4}"
           fi
-        env:
-          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
 
       - name: Fetch options data
         env:
@@ -48,9 +49,7 @@ jobs:
 
       - name: Commit updated DB
         run: |
-          # Suppress “ignored by .gitignore” warnings
           git config advice.addIgnoredFile false
-          # Force-add even if it's in .gitignore
           git add -f options_data.db
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
