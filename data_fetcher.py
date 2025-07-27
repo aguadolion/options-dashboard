@@ -5,20 +5,20 @@
     This module contains higher-level functions for acquiring data used in the
     options dashboard.  It performs the following tasks:
 
-    1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
+    1. Retrieve the list of S&P 500 tickers (or load from user-provided file).
     2. Determine each company's trailing dividend yield and next ex-dividend date.
     3. Filter the list of tickers by dividend yield threshold.
     4. Download the full options chain for each selected ticker from Polygon.
     5. Persist the resulting data in a local SQLite database.
 
-    By default, it fetches S&P 500 tickers via yfinance, but if a file named
+    By default, it fetches S&P 500 tickers via yfinance, but if a file named
     "isins.txt" (or whatever path is set via the ISINS_FILE env var) exists,
     it will load tickers/ISINs from that file instead.
 
     The implementation relies on `yfinance` to obtain dividend information and
     makes HTTP calls to the Polygon API via a small client wrapper defined in
     `polygon_client.py`.
-    """
+"""
 
 import logging
 import os
@@ -66,9 +66,8 @@ def load_tickers_from_file(path: str) -> List[str]:
 
 def get_sp500_tickers() -> List[str]:
     """
-    Return the list of S&P 500 ticker symbols, or load from ISINS_FILE if present.
+    Return the list of S&P 500 ticker symbols, or load from ISINS_FILE if present.
     """
-    # If user provided a file of tickers/ISINs, use that
     if os.path.exists(ISINS_FILE):
         tickers = load_tickers_from_file(ISINS_FILE)
         logger.info("Loaded %d tickers from file %s", len(tickers), ISINS_FILE)
@@ -76,7 +75,7 @@ def get_sp500_tickers() -> List[str]:
 
     # Otherwise fallback to scraping via yfinance
     tickers = [t.upper() for t in yf.TickersSp500().tickers]
-    logger.info("Fetched %d S&P 500 tickers via yfinance", len(tickers))
+    logger.info("Fetched %d S&P 500 tickers via yfinance", len(tickers))
     return tickers
 
 
@@ -88,7 +87,6 @@ def get_dividend_info(ticker: str) -> tuple[float, str | None]:
     yield_pct = info.get('dividendYield', 0.0) or 0.0
     ex_date = info.get('exDividendDate')
     if isinstance(ex_date, (int, float)):
-        # Convert UNIX timestamp to ISO date string
         ex_date = time.strftime('%Y-%m-%d', time.gmtime(ex_date))
     return (yield_pct, ex_date)
 
@@ -99,7 +97,7 @@ def filter_by_dividend_yield(
 ) -> List[str]:
     """
     Filter the given tickers by trailing dividend yield >= threshold.
-    Persists yield info to the database.
+    Persist yield info to the database.
     """
     qualified: List[str] = []
     conn = database.connect()
@@ -119,9 +117,7 @@ def fetch_and_store_options(
     """
     Download and store the full options chain for the given ticker.
     """
-    # Open (or create) DB and ensure schema
     conn = database.connect(db_path)
-    # Retrieve the full options chain (calls & puts)
     try:
         contracts = client.get_options_chain(ticker)
     except Exception as e:
@@ -129,28 +125,31 @@ def fetch_and_store_options(
         conn.close()
         return
 
-    # Upsert each contract into the options table
     for contract in contracts:
         try:
             database.upsert_option(conn, contract)
         except Exception as exc:
             logger.error(
                 "Failed to upsert contract %s: %s",
-                contract.get("contract_symbol"),
+                contract.get('contract_symbol'),
                 exc,
             )
-
     conn.close()
 
+
+def update_data(
+    client: PolygonClient,
+    db_path: str,
+) -> None:
+    """
+    Main loop: load tickers, filter by yield, fetch options, and repeat.
+    """
+    tickers = get_sp500_tickers()
+    logger.info("%d tickers to process", len(tickers))
+    for ticker in tickers:
+        fetch_and_store_options(ticker, client, db_path)
+
 __all__ = [
-    "load_tickers_from_file",
-    "get_sp500_tickers",
-    "get_dividend_info",
-    "filter_by_dividend_yield",
-    "fetch_and_store_options",
-    "update_data",
-]
- [
     "load_tickers_from_file",
     "get_sp500_tickers",
     "get_dividend_info",
