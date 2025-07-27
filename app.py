@@ -39,9 +39,8 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 
-+from database import connect, query_options
-+from datetime import date    # <-- añadir esto para get_date_bounds
-
+from database import connect, query_options
+from datetime import date    # <-- añadir esto para get_date_bounds
 
 def get_companies() -> pd.DataFrame:
     """Load the list of companies from the database.
